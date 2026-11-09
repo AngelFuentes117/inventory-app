@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Panel - Inventario{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total de Productos</h3>
+        <div class="value">{{ total_products }}</div>
+    </div>
+    <div class="stat-card success">
+        <h3>Valor Total del Inventario</h3>
+        <div class="value">${{ "%.2f"|format(total_value) }}</div>
+    </div>
+    <div class="stat-card {% if low_stock_count > 0 %}warning{% endif %}">
+        <h3>Productos con Pocas Existencias (< {{ LOW_STOCK_THRESHOLD }})</h3>
+        <div class="value">{{ low_stock_count }}</div>
+    </div>
+</div>
+
+{% if low_stock_products %}
+<div class="card">
+    <div class="card-header">
+        <h2>⚠️ Alertas de Stock Bajo</h2>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th class="text-right">Existencia</th>
+                    <th class="text-right">Precio</th>
+                    <th class="text-right">Valor</th>
+                    <th>Ubicación</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in low_stock_products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.category }}</td>
+                    <td class="text-right">
+                        <span class="badge badge-low-stock">{{ product.quantity }}</span>
+                    </td>
+                    <td class="text-right">${{ "%.2f"|format(product.price) }}</td>
+                    <td class="text-right">${{ "%.2f"|format(product.price * product.quantity) }}</td>
+                    <td>{{ product.location or '-' }}</td>
+                    <td class="text-center">
+                        <div class="action-buttons">
+                            <a href="{{ url_for('adjust_stock', product_id=product.id) }}" class="btn btn-warning btn-sm">Ajustar</a>
+                            <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-header">
+        <h2>✅ Stock Normal</h2>
+    </div>
+    <p style="text-align: center; color: #27ae60; padding: 20px;">No hay productos con existencias bajas.</p>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>Accesos Rápidos</h2>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="{{ url_for('list_products') }}" class="btn btn-primary">Ver Todos los Productos</a>
+        <a href="{{ url_for('add_product') }}" class="btn btn-success">Agregar Producto</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos - {{ product.name }} - Inventario{% endblock %}
+
+{% block content %}
+<div class="card-header">
+    <h2>📋 Historial de Movimientos: {{ product.name }}</h2>
+</div>
+
+<div style="margin-bottom: 20px;">
+    <a href="{{ url_for('adjust_stock', product_id=product.id) }}" class="btn btn-primary">+ Nuevo Movimiento</a>
+    <a href="{{ url_for('list_products') }}" class="btn btn-secondary" style="margin-left: 10px;">Volver a Productos</a>
+</div>
+
+<div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+    <strong>Stock actual:</strong> 
+    <span class="{% if product.quantity < LOW_STOCK_THRESHOLD %}badge badge-low-stock{% else %}badge badge-ok{% endif %}">
+        {{ product.quantity }} unidades
+    </span>
+    | <strong>Precio:</strong> ${{ "%.2f"|format(product.price) }}
+    | <strong>Categoría:</strong> {{ product.category }}
+    | <strong>Ubicación:</strong> {{ product.location or '-' }}
+</div>
+
+{% if movements %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th class="text-right">Cantidad</th>
+                <th>Motivo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movement in movements %}
+            <tr>
+                <td>{{ movement.created_at }}</td>
+                <td>
+                    {% if movement.type == 'in' %}
+                        <span class="badge badge-movement-in">📥 Entrada</span>
+                    {% else %}
+                        <span class="badge badge-movement-out">📤 Salida</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    {% if movement.type == 'in' %}+{% else %}-{% endif %}{{ movement.quantity }}
+                </td>
+                <td>{{ movement.reason or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p style="margin-top: 15px; color: #7f8c8d;">Total: {{ movements|length }} movimiento(s)</p>
+{% else %}
+<div class="card empty-state">
+    <h3>Sin movimientos</h3>
+    <p>Este producto no tiene movimientos registrados aún.</p>
+    <a href="{{ url_for('adjust_stock', product_id=product.id) }}" class="btn btn-primary">Registrar primer movimiento</a>
+</div>
+{% endif %}
+{% endblock %}

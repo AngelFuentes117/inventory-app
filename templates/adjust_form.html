@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Ajustar Stock - {{ product.name }} - Inventario{% endblock %}
+
+{% block content %}
+<div class="card-header">
+    <h2>⬆⬇ Ajustar Existencias: {{ product.name }}</h2>
+</div>
+
+<div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+    <strong>Stock actual:</strong> 
+    <span class="{% if product.quantity < LOW_STOCK_THRESHOLD %}badge badge-low-stock{% else %}badge badge-ok{% endif %}">
+        {{ product.quantity }} unidades
+    </span>
+    {% if product.quantity < LOW_STOCK_THRESHOLD %}
+        <span style="color: #e74c3c; margin-left: 10px;">⚠️ Stock bajo (menos de {{ LOW_STOCK_THRESHOLD }})</span>
+    {% endif %}
+</div>
+
+<form method="POST">
+    <div class="form-group">
+        <label>Tipo de Movimiento *</label>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                <input type="radio" name="type" value="in" required style="width: auto;">
+                <span>📥 Entrada (sumar al stock)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                <input type="radio" name="type" value="out" style="width: auto;">
+                <span>📤 Salida (restar del stock)</span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="quantity">Cantidad *</label>
+        <input type="number" id="quantity" name="quantity" min="1" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="reason">Motivo / Referencia</label>
+        <input type="text" id="reason" name="reason" placeholder="Ej: Compra proveedor, Venta cliente, Ajuste inventario, Devolución..." maxlength="200">
+    </div>
+    
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Registrar Movimiento</button>
+        <a href="{{ url_for('product_movements', product_id=product.id) }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+<div style="margin-top: 30px;">
+    <a href="{{ url_for('product_movements', product_id=product.id) }}" class="btn btn-secondary">Ver Historial de Movimientos</a>
+    <a href="{{ url_for('list_products') }}" class="btn btn-secondary" style="margin-left: 10px;">Volver a Productos</a>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Productos - Inventario{% endblock %}
+
+{% block content %}
+<div class="card-header">
+    <h2>Lista de Productos</h2>
+    <a href="{{ url_for('add_product') }}" class="btn btn-success">+ Agregar Producto</a>
+</div>
+
+<!-- Barra de búsqueda y filtro -->
+<div class="search-filter">
+    <form method="GET" action="{{ url_for('list_products') }}">
+        <input type="text" name="search" placeholder="Buscar por nombre..." value="{{ search }}">
+        <select name="category">
+            <option value="">Todas las categorías</option>
+            {% for cat in categories %}
+                <option value="{{ cat.category }}" {% if cat.category == selected_category %}selected{% endif %}>
+                    {{ cat.category }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        {% if search or selected_category %}
+            <a href="{{ url_for('list_products') }}" class="btn btn-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+</div>
+
+{% if products %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Categoría</th>
+                <th class="text-right">Precio</th>
+                <th class="text-right">Cantidad</th>
+                <th class="text-right">Valor Total</th>
+                <th>Ubicación</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td><strong>{{ product.name }}</strong></td>
+                <td>{{ product.description or '-' }}</td>
+                <td>{{ product.category }}</td>
+                <td class="text-right">${{ "%.2f"|format(product.price) }}</td>
+                <td class="text-right">
+                    {% if product.quantity < LOW_STOCK_THRESHOLD %}
+                        <span class="badge badge-low-stock">{{ product.quantity }}</span>
+                    {% else %}
+                        <span class="badge badge-ok">{{ product.quantity }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">${{ "%.2f"|format(product.price * product.quantity) }}</td>
+                <td>{{ product.location or '-' }}</td>
+                <td class="text-center">
+                    <div class="action-buttons">
+                        <a href="{{ url_for('adjust_stock', product_id=product.id) }}" class="btn btn-warning btn-sm" title="Ajustar stock">
+                            ⬆⬇
+                        </a>
+                        <a href="{{ url_for('product_movements', product_id=product.id) }}" class="btn btn-secondary btn-sm" title="Ver movimientos">
+                            📋
+                        </a>
+                        <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary btn-sm" title="Editar">
+                            ✏️
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}" style="display: inline;" onsubmit="return confirm('¿Estás seguro de eliminar este producto?');">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">🗑️</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p style="margin-top: 15px; color: #7f8c8d;">Total: {{ products|length }} producto(s)</p>
+{% else %}
+<div class="card empty-state">
+    <h3>No hay productos</h3>
+    <p>{% if search or selected_category %}No se encontraron productos con los filtros actuales.{% else %}Aún no has agregado ningún producto.{% endif %}</p>
+    <a href="{{ url_for('add_product') }}" class="btn btn-success">Agregar primer producto</a>
+</div>
+{% endif %}
+{% endblock %}
